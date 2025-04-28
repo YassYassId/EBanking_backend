@@ -17,7 +17,7 @@ import java.util.List;
 public class BankAccount {
     @Id
     private String id;
-    private double solde;
+    private double balance;
     private Date createdAt;
     @Enumerated(EnumType.STRING)
     private AccountStatus status;
