@@ -1,13 +1,7 @@
 package com.jee.ebanking_backend.mappers;
 
-import com.jee.ebanking_backend.dtos.AccountOperationDTO;
-import com.jee.ebanking_backend.dtos.CurrentBankAccountDTO;
-import com.jee.ebanking_backend.dtos.CustomerDTO;
-import com.jee.ebanking_backend.dtos.SavingBankAccountDTO;
-import com.jee.ebanking_backend.entities.AccountOperation;
-import com.jee.ebanking_backend.entities.CurrentAccount;
-import com.jee.ebanking_backend.entities.Customer;
-import com.jee.ebanking_backend.entities.SavingAccount;
+import com.jee.ebanking_backend.dtos.*;
+import com.jee.ebanking_backend.entities.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -48,6 +42,7 @@ public class BankAccountMapperImpl {
         return currentBankAccountDTO;
     }
 
+
     public CurrentAccount fromCurrentBankAccountDTO(CurrentBankAccountDTO currentBankAccountDTO){
         CurrentAccount currentAccount=new CurrentAccount();
         BeanUtils.copyProperties(currentBankAccountDTO,currentAccount);
@@ -59,5 +54,15 @@ public class BankAccountMapperImpl {
         AccountOperationDTO accountOperationDTO=new AccountOperationDTO();
         BeanUtils.copyProperties(accountOperation,accountOperationDTO);
         return accountOperationDTO;
+    }
+
+    public BankAccountDTO fromBankAccount(BankAccount bankAccount) {
+        if (bankAccount instanceof SavingAccount) {
+            return fromSavingBankAccount((SavingAccount) bankAccount);
+        } else if (bankAccount instanceof CurrentAccount) {
+            return fromCurrentBankAccount((CurrentAccount) bankAccount);
+        } else {
+            throw new IllegalArgumentException("Unknown account type");
+        }
     }
 }

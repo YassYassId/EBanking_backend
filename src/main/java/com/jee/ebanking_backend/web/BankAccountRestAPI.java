@@ -3,18 +3,61 @@ package com.jee.ebanking_backend.web;
 import com.jee.ebanking_backend.dtos.*;
 import com.jee.ebanking_backend.exceptions.BalanceNotSufficientException;
 import com.jee.ebanking_backend.exceptions.BankAccountNotFoundException;
+import com.jee.ebanking_backend.exceptions.CustomerNotFoundException;
 import com.jee.ebanking_backend.services.BankAccountService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@CrossOrigin("*")
+@CrossOrigin(origins = "http://localhost:4200")
 public class BankAccountRestAPI {
     private BankAccountService bankAccountService;
 
     public BankAccountRestAPI(BankAccountService bankAccountService) {
         this.bankAccountService = bankAccountService;
+    }
+
+    @PostMapping("/accounts")
+    public BankAccountDTO createAccount(@RequestBody CreateAccountDTO createAccountDTO) throws CustomerNotFoundException {
+
+        if (createAccountDTO.getCustomerId() == null || createAccountDTO.getInitialBalance() == null) {
+            throw new IllegalArgumentException("Customer ID and Initial Balance are required");
+        }
+
+        String status = createAccountDTO.getStatus() != null ? createAccountDTO.getStatus() : "CREATED";
+
+        if ("SavingAccount".equals(createAccountDTO.getType())) {
+            return bankAccountService.saveSavingBankAccount(
+                    createAccountDTO.getInitialBalance(),
+                    createAccountDTO.getInterestRate(),
+                    createAccountDTO.getCustomerId(),
+                    status
+            );
+        } else if ("CurrentAccount".equals(createAccountDTO.getType())) {
+            return bankAccountService.saveCurrentBankAccount(
+                    createAccountDTO.getInitialBalance(),
+                    createAccountDTO.getOverDraft(),
+                    createAccountDTO.getCustomerId(),
+                    status
+            );
+        } else {
+            throw new IllegalArgumentException("Invalid account type");
+        }
+    }
+
+    @PutMapping("/accounts/{id}")
+    public BankAccountDTO updateAccount(
+            @PathVariable String id,
+            @RequestBody UpdateAccountDTO dto) throws BankAccountNotFoundException {
+
+        System.out.println("Received PATCH request for account ID: " + id);
+        System.out.println("Status: " + dto.getStatus());
+        System.out.println("Interest Rate: " + dto.getInterestRate());
+        System.out.println("Overdraft: " + dto.getOverDraft());
+
+        return bankAccountService.updateAccount(id, dto);
     }
 
     @GetMapping("/accounts/{accountId}")
@@ -59,5 +102,11 @@ public class BankAccountRestAPI {
                 transferRequestDTO.getAccountSource(),
                 transferRequestDTO.getAccountDestination(),
                 transferRequestDTO.getAmount());
+    }
+
+    @DeleteMapping("/accounts/{id}")
+    public ResponseEntity<Void> deleteAccount(@PathVariable String id) throws BankAccountNotFoundException, CustomerNotFoundException {
+        bankAccountService.deleteAccount(id);
+        return ResponseEntity.noContent().build();
     }
 }

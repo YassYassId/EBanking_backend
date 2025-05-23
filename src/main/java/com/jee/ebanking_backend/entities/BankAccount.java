@@ -23,6 +23,12 @@ public class BankAccount {
     private AccountStatus status;
     @ManyToOne
     private Customer customer;
-    @OneToMany(mappedBy = "bankAccount",fetch = FetchType.LAZY)
+
+
+    @OneToMany(mappedBy = "bankAccount", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<AccountOperation> accountOperations;
+
+    public String getType() {
+        return this.getClass().getSimpleName(); // Returns "SavingAccount" or "CurrentAccount"
+    }
 }
